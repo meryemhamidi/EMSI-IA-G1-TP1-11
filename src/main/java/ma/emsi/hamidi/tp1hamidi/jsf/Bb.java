@@ -58,6 +58,25 @@ public class Bb implements Serializable {
     @Inject
     private FacesContext facesContext;
 
+    // --- NOUVELLES PROPRIÉTÉS POUR LE MODE DEBUG ---
+
+    /**
+     * Pour activer ou non le mode debug.
+     */
+    private boolean debug = false;
+
+    /**
+     * Pour afficher la requête JSON envoyée à l'API.
+     */
+    private String texteRequeteJson;
+
+    /**
+     * Pour afficher la réponse JSON reçue de l'API.
+     */
+    private String texteReponseJson;
+
+    // --- FIN NOUVELLES PROPRIÉTÉS POUR LE MODE DEBUG ---
+
     /**
      * Obligatoire pour un bean CDI (classe gérée par CDI), s'il y a un autre constructeur.
      */
@@ -105,6 +124,34 @@ public class Bb implements Serializable {
         this.conversation = new StringBuilder(conversation);
     }
 
+    // --- ACCESSEURS (GETTERS/SETTERS) POUR LE MODE DEBUG ---
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
+    public String getTexteRequeteJson() {
+        return texteRequeteJson;
+    }
+
+    public void setTexteRequeteJson(String texteRequeteJson) {
+        this.texteRequeteJson = texteRequeteJson;
+    }
+
+    public String getTexteReponseJson() {
+        return texteReponseJson;
+    }
+
+    public void setTexteReponseJson(String texteReponseJson) {
+        this.texteReponseJson = texteReponseJson;
+    }
+
+    // --- FIN ACCESSEURS POUR LE MODE DEBUG ---
+
     /**
      * Envoie la question au serveur.
      * En attendant de l'envoyer à un LLM, le serveur fait un traitement quelconque, juste pour tester :
@@ -135,6 +182,17 @@ public class Bb implements Serializable {
         afficherConversation();
         return null;
     }
+
+    // --- NOUVELLE MÉTHODE POUR LE MODE DEBUG ---
+
+    /**
+     * Inverse l'état du mode debug.
+     */
+    public void toggleDebug() {
+        this.setDebug(!isDebug());
+    }
+
+    // --- FIN NOUVELLE MÉTHODE POUR LE MODE DEBUG ---
 
     /**
      * Pour un nouveau chat.
