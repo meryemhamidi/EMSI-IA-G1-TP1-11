@@ -52,30 +52,13 @@ public class Bb implements Serializable {
      */
     private StringBuilder conversation = new StringBuilder();
 
+    private boolean Debug;
+
     /**
      * Contexte JSF. Utilisé pour qu'un message d'erreur s'affiche dans le formulaire.
      */
     @Inject
     private FacesContext facesContext;
-
-    // --- NOUVELLES PROPRIÉTÉS POUR LE MODE DEBUG ---
-
-    /**
-     * Pour activer ou non le mode debug.
-     */
-    private boolean debug = false;
-
-    /**
-     * Pour afficher la requête JSON envoyée à l'API.
-     */
-    private String texteRequeteJson;
-
-    /**
-     * Pour afficher la réponse JSON reçue de l'API.
-     */
-    private String texteReponseJson;
-
-    // --- FIN NOUVELLES PROPRIÉTÉS POUR LE MODE DEBUG ---
 
     /**
      * Obligatoire pour un bean CDI (classe gérée par CDI), s'il y a un autre constructeur.
@@ -124,34 +107,13 @@ public class Bb implements Serializable {
         this.conversation = new StringBuilder(conversation);
     }
 
-    // --- ACCESSEURS (GETTERS/SETTERS) POUR LE MODE DEBUG ---
-
-    public boolean isDebug() {
-        return debug;
+    private void setDebug(boolean b) {
+        Debug = b;
     }
 
-    public void setDebug(boolean debug) {
-        this.debug = debug;
+    public boolean isDebug(){
+        return Debug;
     }
-
-    public String getTexteRequeteJson() {
-        return texteRequeteJson;
-    }
-
-    public void setTexteRequeteJson(String texteRequeteJson) {
-        this.texteRequeteJson = texteRequeteJson;
-    }
-
-    public String getTexteReponseJson() {
-        return texteReponseJson;
-    }
-
-    public void setTexteReponseJson(String texteReponseJson) {
-        this.texteReponseJson = texteReponseJson;
-    }
-
-    // --- FIN ACCESSEURS POUR LE MODE DEBUG ---
-
     /**
      * Envoie la question au serveur.
      * En attendant de l'envoyer à un LLM, le serveur fait un traitement quelconque, juste pour tester :
@@ -160,39 +122,26 @@ public class Bb implements Serializable {
      *
      * @return null pour rester sur la même page.
      */
+    public void toggleDebug() {
+        this.setDebug(!isDebug());
+    }
     public String envoyer() {
         if (question == null || question.isBlank()) {
-            // Erreur ! Le formulaire va être réaffiché en réponse à la requête POST, avec un message d'erreur.
             FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR,
                     "Texte question vide", "Il manque le texte de la question");
             facesContext.addMessage(null, message);
             return null;
         }
-        // Entourer la réponse avec "||".
         this.reponse = "||";
-        // Si la conversation n'a pas encore commencé, ajouter le rôle système au début de la réponse
         if (this.conversation.isEmpty()) {
-            // Ajouter le rôle système au début de la réponse
             this.reponse += roleSysteme.toUpperCase(Locale.FRENCH) + "\n";
-            // Invalide le bouton pour changer le rôle système
             this.roleSystemeChangeable = false;
         }
-        this.reponse += question.toLowerCase(Locale.FRENCH) + "||";
-        // La conversation contient l'historique des questions-réponses depuis le début.
+        this.reponse += new StringBuilder(question).reverse().toString() + "||";
         afficherConversation();
         return null;
     }
 
-    // --- NOUVELLE MÉTHODE POUR LE MODE DEBUG ---
-
-    /**
-     * Inverse l'état du mode debug.
-     */
-    public void toggleDebug() {
-        this.setDebug(!isDebug());
-    }
-
-    // --- FIN NOUVELLE MÉTHODE POUR LE MODE DEBUG ---
 
     /**
      * Pour un nouveau chat.
@@ -244,4 +193,5 @@ public class Bb implements Serializable {
 
         return this.listeRolesSysteme;
     }
+
 }
