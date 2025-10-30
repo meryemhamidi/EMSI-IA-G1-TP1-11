@@ -9,8 +9,12 @@ import jakarta.inject.Named;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
+import java.util.stream.Collectors;
+import ma.emsi.hamidi.tp1hamidi.llm.JsonUtilPourGemini;
+import ma.emsi.hamidi.tp1hamidi.llm.LlmInteraction;
+import ma.emsi.hamidi.tp1hamidi.llm.RequeteException;
 
 /**
  * Backing bean pour la page JSF index.xhtml.
@@ -52,7 +56,29 @@ public class Bb implements Serializable {
      */
     private StringBuilder conversation = new StringBuilder();
 
-    private boolean Debug;
+    private String texteRequeteJson;
+    private String texteReponseJson;
+
+    @Inject
+    private JsonUtilPourGemini jsonUtil;
+
+
+
+    private boolean debug = false;
+
+    public boolean isDebug() {
+
+        return debug;
+    }
+    public void toggleDebug() {
+
+
+
+        this.setDebug(!isDebug());
+    }
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
 
     /**
      * Contexte JSF. Utilisé pour qu'un message d'erreur s'affiche dans le formulaire.
@@ -107,13 +133,6 @@ public class Bb implements Serializable {
         this.conversation = new StringBuilder(conversation);
     }
 
-    private void setDebug(boolean b) {
-        Debug = b;
-    }
-
-    public boolean isDebug(){
-        return Debug;
-    }
     /**
      * Envoie la question au serveur.
      * En attendant de l'envoyer à un LLM, le serveur fait un traitement quelconque, juste pour tester :
@@ -122,9 +141,6 @@ public class Bb implements Serializable {
      *
      * @return null pour rester sur la même page.
      */
-    public void toggleDebug() {
-        this.setDebug(!isDebug());
-    }
     public String envoyer() {
         if (question == null || question.isBlank()) {
             FacesMessage message = new FacesMessage(FacesMessage.SEVERITY_ERROR,
@@ -132,16 +148,32 @@ public class Bb implements Serializable {
             facesContext.addMessage(null, message);
             return null;
         }
-        this.reponse = "||";
-        if (this.conversation.isEmpty()) {
-            this.reponse += roleSysteme.toUpperCase(Locale.FRENCH) + "\n";
+
+        jsonUtil.setSystemRole(roleSysteme);
+
+        try {
+            LlmInteraction interaction = jsonUtil.envoyerRequete(question);
+            this.reponse = interaction.reponseExtraite();
+            this.texteRequeteJson = interaction.questionJson();
+            this.texteReponseJson = interaction.reponseJson();
+        } catch (RequeteException e) {
+            FacesMessage message =
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR,
+                            "Problème de connexion avec l'API du LLM",
+                            "Problème de connexion avec l'API du LLM" + e.getMessage());
+            facesContext.addMessage(null, message);
+        }
+
+        // Mise à jour de la conversation
+        afficherConversation();
+
+        // Une fois qu’on a envoyé la question, on bloque le rôle système si c’est le premier message
+        if (this.conversation.toString().split("== User:").length <= 2) { // Correction de la condition
             this.roleSystemeChangeable = false;
         }
-        this.reponse += new StringBuilder(question).reverse().toString() + "||";
-        afficherConversation();
-        return null;
-    }
 
+        return null; // reste sur la même page
+    }
 
     /**
      * Pour un nouveau chat.
@@ -189,9 +221,26 @@ public class Bb implements Serializable {
                     are you tell them the average price of a meal.
                     """;
             this.listeRolesSysteme.add(new SelectItem(role, "Guide touristique"));
+
+            role = """
+                    Spécialisé dans les recherches locales : restaurants, cafés, hôtels, lieux touristiques, etc.
+                    🪄 Exemples :
+
+                    •“Trouve-moi un restaurant italien à Casablanca.”
+                    •“Y a-t-il un hôtel proche des cascades d’Akchour ?”""";
+            this.listeRolesSysteme.add(new SelectItem(role, "Recherche locale"));
+
         }
 
         return this.listeRolesSysteme;
+    }
+
+    public String getTexteRequeteJson() {
+        return texteRequeteJson;
+    }
+
+    public String getTexteReponseJson() {
+        return texteReponseJson;
     }
 
 }

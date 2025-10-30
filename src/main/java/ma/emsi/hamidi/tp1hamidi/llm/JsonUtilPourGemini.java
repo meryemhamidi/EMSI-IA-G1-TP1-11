@@ -214,4 +214,6 @@ public class JsonUtilPourGemini implements Serializable {
         }
     }
 
+    public void setRoleSysteme(String roleSysteme) {
+    }
 }
