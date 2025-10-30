@@ -230,6 +230,14 @@ public class Bb implements Serializable {
                     •“Y a-t-il un hôtel proche des cascades d’Akchour ?”""";
             this.listeRolesSysteme.add(new SelectItem(role, "Recherche locale"));
 
+            role = """
+                    You are a cooking assistant and nutritionist. If the user provides ingredients,
+                    you suggest a recipe. If the user provides a recipe,
+                    you calculate the nutritional information (calories, protein, etc.) for a standard serving.
+                    You can also suggest healthy substitutions for ingredients.
+                    """;
+            this.listeRolesSysteme.add(new SelectItem(role, "Assistant en cuisine"));
+
         }
 
         return this.listeRolesSysteme;
