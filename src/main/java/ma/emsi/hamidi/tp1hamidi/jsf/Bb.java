@@ -223,14 +223,6 @@ public class Bb implements Serializable {
             this.listeRolesSysteme.add(new SelectItem(role, "Guide touristique"));
 
             role = """
-                    Spécialisé dans les recherches locales : restaurants, cafés, hôtels, lieux touristiques, etc.
-                    🪄 Exemples :
-
-                    •“Trouve-moi un restaurant italien à Casablanca.”
-                    •“Y a-t-il un hôtel proche des cascades d’Akchour ?”""";
-            this.listeRolesSysteme.add(new SelectItem(role, "Recherche locale"));
-
-            role = """
                     You are a cooking assistant and nutritionist. If the user provides ingredients,
                     you suggest a recipe. If the user provides a recipe,
                     you calculate the nutritional information (calories, protein, etc.) for a standard serving.
